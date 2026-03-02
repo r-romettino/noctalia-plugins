@@ -209,7 +209,7 @@ Item {
     function calculateAllDaySpanForWeek(event) {
         var start = new Date(event.startTime), end = new Date(event.endTime)
         var endsMidnight = end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0
-        var adjEnd = endsMidnight ? new Date(end.getTime() - 1) : end
+        var adjEnd = endsMidnight && !event.allDay ? new Date(end.getTime() - 1) : end
         var startIdx = Math.max(0, getDayIndexForDate(start))
         var adjEndUtc = Date.UTC(adjEnd.getFullYear(), adjEnd.getMonth(), adjEnd.getDate())
         var wsUtc     = Date.UTC(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate())
@@ -255,6 +255,7 @@ Item {
             } else if (startDay >= weekStartDate && startDay < weekEndDate) {
                 var startIdx = getDayIndexForDate(start)
                 var span = calculateAllDaySpanForWeek(event)
+                console.log(`${event.title} : ${span}`)
                 if (span > 0) {
                     var lane = findAvailableLane(occupied, startIdx, startIdx + span - 1)
                     for (var d = startIdx; d < startIdx + span && d < 7; d++) { if (!occupied[d]) occupied[d] = []; occupied[d].push(lane) }
@@ -396,6 +397,10 @@ Item {
     }
 
     function isAllDayEvent(event) {
+        if (event.allDay === 'True') {
+            return true;
+        }
+
         var dur = event.end - event.start
         var start = new Date(event.start * 1000), end = new Date(event.end * 1000)
         var startsMidnight = start.getHours() === 0 && start.getMinutes() === 0 && start.getSeconds() === 0
@@ -412,7 +417,7 @@ Item {
         var start = new Date(event.start * 1000), end = new Date(event.end * 1000)
         var endsMidnight = end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0
         var startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate())
-        var endDay = endsMidnight ? new Date(end.getFullYear(), end.getMonth(), end.getDate() - 1) :
+        var endDay = endsMidnight && !event.allDay ? new Date(end.getFullYear(), end.getMonth(), end.getDate() - 1) :
                                    new Date(end.getFullYear(), end.getMonth(), end.getDate())
         return startDay.getTime() !== endDay.getTime()
     }
